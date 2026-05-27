@@ -180,7 +180,7 @@
   <div class="settings">
     <div class="s-field"><label>Старт сек</label><input type="number" id="i-start" value="15" min="1" max="99"></div>
     <div class="s-field"><label>Работа сек</label><input type="number" id="i-work" value="60" min="5" max="999"></div>
-    <div class="s-field"><label>Отдых сек</label><input type="number" id="i-rest" value="70" min="5" max="999"></div>
+    <div class="s-field"><label>Отдых сек</label><input type="number" id="i-rest" value="10" min="5" max="999"></div>
     <div class="s-field"><label>Подходов</label><input type="number" id="i-sets" value="12" min="1" max="30" oninput="updateSetsDisplay()"></div>
   </div>
 </div>
@@ -196,15 +196,28 @@ function getAC() {
 function beep(freq, dur) {
   const a = getAC();
   const o = a.createOscillator(), g = a.createGain();
-  o.connect(g); g.connect(a.destination);
+  o.connect(g);
+  // Усилитель громкости
+  const comp = a.createDynamicsCompressor();
+  g.connect(comp); comp.connect(a.destination);
   o.frequency.value = freq; o.type = 'sine';
   const t = a.currentTime;
-  g.gain.setValueAtTime(0.6, t);
+  // Усилитель громкости
+  const comp = a.createDynamicsCompressor();
+  g.connect(comp); comp.connect(a.destination);
+  g.gain.setValueAtTime(2.5, t);
   g.gain.exponentialRampToValueAtTime(0.001, t + dur);
   o.start(t); o.stop(t + dur + 0.05);
 }
-function playSignal() { beep(900, 0.15); }
-function playFinish()  { beep(660, 0.7); }
+function playSignal() {
+  beep(1100, 0.25);
+  setTimeout(() => beep(1100, 0.25), 300);
+}
+function playFinish() {
+  beep(880, 0.3);
+  setTimeout(() => beep(880, 0.3), 350);
+  setTimeout(() => beep(1320, 0.6), 700);
+}
 
 function doFlash(color) {
   const f = document.getElementById('flash');
@@ -220,7 +233,7 @@ function loadCfg() {
   cfg = {
     start: parseInt(document.getElementById('i-start').value)||15,
     work:  parseInt(document.getElementById('i-work').value)||60,
-    rest:  parseInt(document.getElementById('i-rest').value)||70,
+    rest:  parseInt(document.getElementById('i-rest').value)||10,
     sets:  parseInt(document.getElementById('i-sets').value)||12
   };
   totalSets = cfg.sets;
